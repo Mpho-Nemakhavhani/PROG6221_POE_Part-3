@@ -1,0 +1,236 @@
+﻿<Window x:Class="CyberSecurityChatBotPart2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CyberSecurityChatBotPart2"
+        mc:Ignorable="d"
+        Title="CyberShield" Height="680" Width="920"
+        Background="#0D1219">
+
+    <Window.Resources>
+        <local:BotMessageConverter x:Key="StartsWithBotConverter"/>
+
+        <!-- Shared monospace style for anything that should read as
+             "system output" - console-style text -->
+        <Style x:Key="ConsoleText" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="Foreground" Value="#C7CFDB"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <!-- Command-style buttons: flat, square corners, monospace,
+             uppercase labels - terminal aesthetic rather than rounded
+             chat-app buttons -->
+        <Style x:Key="ConsoleButton" TargetType="Button">
+            <Setter Property="Background" Value="#0D1219"/>
+            <Setter Property="Foreground" Value="#9AA6B8"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="BorderBrush" Value="#232C3A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="0,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#151C28"/>
+                                <Setter Property="BorderBrush" Value="DeepPink"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="90"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="56"/>
+            <RowDefinition Height="56"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER: console title bar + connection status, keeps the
+             existing AsciiArt image as a small badge on the left -->
+        <Border Grid.Row="0" Background="#151C28" BorderBrush="#232C3A" BorderThickness="0,0,0,1">
+            <Grid Margin="16,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0"
+                        Width="58" Height="58"
+                        Background="#0D1219"
+                        BorderBrush="#232C3A"
+                        BorderThickness="1"
+                        CornerRadius="6">
+                    <Image Source="AsciiArt.png.png"
+                           Width="44" Height="44"
+                           Stretch="Uniform"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0,0,0">
+                    <TextBlock Text="CYBERSHIELD"
+                               FontFamily="Segoe UI"
+                               FontWeight="Bold"
+                               FontSize="17"
+                               Foreground="#E4E9F0"/>
+                    <TextBlock Text="Cybersecurity awareness console"
+                               FontFamily="Segoe UI"
+                               FontSize="11.5"
+                               Foreground="#5C6B82"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse x:Name="DbStatusDot" Width="8" Height="8" Fill="DeepPink" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="DbStatusText"
+                               Text="DB CONNECTED"
+                               FontFamily="Consolas"
+                               FontSize="11"
+                               Foreground="#7C8AA0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- CHAT AREA: console log styling, BOT / USER labels instead
+             of chat bubbles, no timestamps -->
+        <Border Grid.Row="1" Background="#0D1219">
+            <ListBox Name="ChatDisplay"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     Margin="16,12,16,12"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Padding" Value="0,3"/>
+                        <Setter Property="Focusable" Value="False"/>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="56"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0"
+                                       FontFamily="Consolas"
+                                       FontSize="12"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Top">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="USER"/>
+                                        <Setter Property="Foreground" Value="DeepPink"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Converter={StaticResource StartsWithBotConverter}}" Value="True">
+                                                <Setter Property="Text" Value="BOT"/>
+                                                <Setter Property="Foreground" Value="#5C6B82"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding}"
+                                       Style="{StaticResource ConsoleText}"
+                                       TextWrapping="Wrap"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+
+        <!-- FEATURE SHORTCUT BUTTONS -->
+        <Border Grid.Row="2" Background="#151C28" BorderBrush="#232C3A" BorderThickness="0,1,0,1">
+            <Grid Margin="16,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="VIEW_TASKS" Style="{StaticResource ConsoleButton}" Click="ViewTasksButton_Click"/>
+                <Button Grid.Column="2" Content="START_QUIZ" Style="{StaticResource ConsoleButton}" Click="StartQuizButton_Click"/>
+                <Button Grid.Column="4" Content="ACTIVITY_LOG" Style="{StaticResource ConsoleButton}" Click="ActivityLogButton_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- INPUT AREA -->
+        <Border Grid.Row="3" Background="#151C28">
+            <Grid Margin="16,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="90"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0"
+                        Background="#0D1219"
+                        BorderBrush="#232C3A"
+                        BorderThickness="1"
+                        CornerRadius="4">
+                    <TextBox Name="UserInput"
+                              Background="Transparent"
+                              Foreground="#C7CFDB"
+                              CaretBrush="DeepPink"
+                              FontFamily="Consolas"
+                              FontSize="13"
+                              BorderThickness="0"
+                              VerticalContentAlignment="Center"
+                              Padding="10,0"
+                              KeyDown="UserInput_KeyDown"/>
+                </Border>
+
+                <Button Grid.Column="2"
+                        Content="SEND"
+                        Click="SendButton_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource ConsoleButton}">
+                            <Setter Property="Background" Value="#1A2E28"/>
+                            <Setter Property="BorderBrush" Value="#1FD9A3"/>
+                            <Setter Property="Foreground" Value="#5DCAA5"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <Button Grid.Column="4"
+                        Content="CLEAR"
+                        Click="ClearButton_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource ConsoleButton}">
+                            <Setter Property="Background" Value="#2A1818"/>
+                            <Setter Property="BorderBrush" Value="#D4534A"/>
+                            <Setter Property="Foreground" Value="#E89A95"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
